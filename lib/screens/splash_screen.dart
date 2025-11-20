@@ -1,5 +1,9 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
+import '../database/hive_helper.dart';        // ← Hive Helper
+import '../models/user_model.dart';           // ← User dari Hive
+import 'login_screen.dart';
+import 'dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,17 +16,32 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
+  }
 
-    // Pindah ke halaman berikutnya setelah 3 detik
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        // Nanti kita ganti jadi halaman username
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PlaceholderScreen()),
-        );
-      }
-    });
+  Future<void> _checkLoginStatus() async {
+    // Tampilkan splash minimal 3 detik biar cantik
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Cek apakah ada user yang sudah login (dari Hive)
+    final user = HiveHelper.getCurrentUser();
+
+    // Pastikan widget masih mounted sebelum navigasi
+    if (!mounted) return;
+
+    if (user != null) {
+      // Sudah pernah register & login → langsung ke Dashboard
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => DashboardScreen(user: user)),
+      );
+    } else {
+      // Belum ada user → ke halaman Login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override
@@ -44,10 +63,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // === LOGO LINGKARAN PUTIH ===
+            // Logo QUIZ! (sama persis seperti desain awal kamu)
             Container(
-              width: 200,
-              height: 200,
+              width: 220,
+              height: 220,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
@@ -64,94 +83,69 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   // Lingkaran ungu dalam
                   Container(
-                    width: 160,
-                    height: 160,
+                    width: 175,
+                    height: 175,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF9d4edd),
-                          Color(0xFF7b2cbf),
-                        ],
+                        colors: [Color(0xFF9d4edd), Color(0xFF7b2cbf)],
                       ),
                     ),
                   ),
-
                   // Teks QUIZ!
                   const Text(
                     'QUIZ!',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 42,
+                      fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
                     ),
                   ),
-
-                  // Icon tanda tanya (kiri atas)
+                  // Icon tanda tanya
                   const Positioned(
-                    top: 30,
-                    left: 40,
+                    top: 35,
+                    left: 45,
+                    child: CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Colors.amber,
+                      child: Icon(Icons.question_mark, color: Colors.white, size: 30),
+                    ),
+                  ),
+                  // Icon centang
+                  const Positioned(
+                    bottom: 35,
+                    right: 40,
                     child: CircleAvatar(
                       radius: 20,
-                      backgroundColor: Colors.amber,
-                      child: Icon(Icons.question_mark, color: Colors.white, size: 28),
-                    ),
-                  ),
-
-                  // Icon centang (kanan bawah)
-                  const Positioned(
-                    bottom: 40,
-                    right: 30,
-                    child: CircleAvatar(
-                      radius: 18,
                       backgroundColor: Colors.red,
-                      child: Icon(Icons.check, color: Colors.white, size: 24),
+                      child: Icon(Icons.check, color: Colors.white, size: 28),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 80),
+            const SizedBox(height: 100),
 
             // Loading text
             const Text(
               'Loading...',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
-                letterSpacing: 1.5,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 2,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
-            // Indikator loading
+            // Loading indicator
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
+              strokeWidth: 4,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Sementara buat placeholder biar ga error
-class PlaceholderScreen extends StatelessWidget {
-  const PlaceholderScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          'Splash selesai!\nSekarang lanjut halaman berikutnya',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24, color: Colors.black54),
         ),
       ),
     );

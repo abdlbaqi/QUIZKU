@@ -1,32 +1,18 @@
 // lib/models/user_model.dart
-class User {
-  final int? id;
-  final String username;
-  final String password;      // akan kita hash nanti
-  final String? namaLengkap;
+import 'package:hive/hive.dart';
 
-  User({
-    this.id,
-    required this.username,
-    required this.password,
-    this.namaLengkap,
-  });
+part 'user_model.g.dart'; // nanti generate dengan flutter pub run build_runner build
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'username': username,
-      'password': password,
-      'nama_lengkap': namaLengkap,
-    };
-  }
+@HiveType(typeId: 0)
+class User extends HiveObject {
+  @HiveField(0)
+  late String username;
 
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      id: map['id'],
-      username: map['username'],
-      password: map['password'],
-      namaLengkap: map['nama_lengkap'],
-    );
-  }
+  @HiveField(1)
+  late String password;
+
+  @HiveField(2)
+  String? namaLengkap;
+
+  User({required this.username, required this.password, this.namaLengkap});
 }
