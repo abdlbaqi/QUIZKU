@@ -1,4 +1,4 @@
-# quiz_uas
+# QuizKuAPP
 
 A new Flutter project.
 
