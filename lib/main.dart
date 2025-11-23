@@ -1,12 +1,14 @@
 // lib/main.dart
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, duplicate_import
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_uas/screens/admin/admin_dashboard_screen.dart';
 import 'firebase_options.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 import 'screens/player/player_dashboard_screen.dart';
 
 void main() async {
@@ -40,7 +42,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
-        '/player-dashboard': (_) => const Placeholder(), // nanti tidak dipakai
+        '/player-dashboard': (_) => const Placeholder(),
+        '/admin': (context) => const AdminDashboardScreen(), // nanti tidak dipakai
       },
 
       home: const SplashScreen(),
