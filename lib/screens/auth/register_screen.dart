@@ -47,54 +47,81 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(30),
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 50),
-                    const Text('Daftar Akun', style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 50),
-
-                    TextFormField(controller: _userCtrl, decoration: _deco('Username'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),
-                    const SizedBox(height: 20),
-                    TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: _deco('Email'), validator: (v) => v!.contains('@') ? null : 'Email tidak valid'),
-                    const SizedBox(height: 20),
-                    TextFormField(controller: _passCtrl, obscureText: true, decoration: _deco('Password'), validator: (v) => v!.length >= 6 ? null : 'Min 6 karakter'),
-                    const SizedBox(height: 30),
-
-                    // // Pilih Role
-                    // DropdownButtonFormField<String>(
-                    //   value: _role,
-                    //   decoration: _deco('Pilih Role'),
-                    //   items: const [
-                    //     DropdownMenuItem(value: 'pemain', child: Text('Pemain')),
-                    //     DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                    //   ],
-                    //   onChanged: (val) => setState(() => _role = val!),
-                    // ),
-                    const SizedBox(height: 40),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _register,
-                        child: _loading ? const CircularProgressIndicator(color: Colors.purple) : const Text('DAFTAR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(30),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 30),
+                            // Logo QUIZ! (sama persis dengan login)
+                            Container(
+                              width: 140,
+                              height: 140,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    width: 110,
+                                    height: 110,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(colors: [Color(0xFF9d4edd), Color(0xFF7b2cbf)]),
+                                    ),
+                                  ),
+                                  const Text('QUIZ!', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            const Text('Daftar Akun', style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 30),
+                            TextFormField(controller: _userCtrl, decoration: _deco('Username'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),
+                            const SizedBox(height: 20),
+                            TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: _deco('Email'), validator: (v) => v!.contains('@') ? null : 'Email tidak valid'),
+                            const SizedBox(height: 20),
+                            TextFormField(controller: _passCtrl, obscureText: true, decoration: _deco('Password'), validator: (v) => v!.length >= 6 ? null : 'Min 6 karakter'),
+                            const SizedBox(height: 30),
+                            // Role di-set otomatis sebagai 'pemain' saat register
+                            const SizedBox(height: 40),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: _loading ? null : _register,
+                                child: _loading ? const CircularProgressIndicator(color: Colors.purple) : const Text('DAFTAR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Sudah punya akun? Login', style: TextStyle(color: Colors.white)) ),
+                            const Spacer(),
+                          ],
+                        ),
                       ),
                     ),
-
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Sudah punya akun? Login', style: TextStyle(color: Colors.white))),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
