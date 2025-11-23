@@ -1,19 +1,22 @@
 // lib/main.dart
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/auth/splash_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/player/player_dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // Inisialisasi Firebase untuk semua platform (Android, iOS, Web)
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    // Supaya kalau error inisialisasi terlihat jelas di debug console
     debugPrint("Firebase initialization failed: $e");
   }
 
@@ -32,6 +35,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF7b2cbf),
       ),
+
+      // 🔥 ROUTES DITAMBAHKAN DI SINI
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+        '/player-dashboard': (_) => const Placeholder(), // nanti tidak dipakai
+      },
+
       home: const SplashScreen(),
     );
   }
