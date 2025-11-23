@@ -1,9 +1,13 @@
 // lib/screens/splash_screen.dart
+// ignore_for_file: duplicate_import
+
 import 'package:flutter/material.dart';
-import '../database/hive_helper.dart';        // ← Hive Helper
-import '../models/user_model.dart';           // ← User dari Hive
+import 'package:quiz_uas/screens/admin/admin_dashboard_screen.dart';
+import 'package:quiz_uas/screens/player/player_dashboard_screen.dart';
+import '../../services/firebase_service.dart';   // ← Firebase Service
 import 'login_screen.dart';
-import 'dashboard_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
+import '../player/player_dashboard_screen.dart';  
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,20 +27,29 @@ class _SplashScreenState extends State<SplashScreen> {
     // Tampilkan splash minimal 3 detik biar cantik
     await Future.delayed(const Duration(seconds: 3));
 
-    // Cek apakah ada user yang sudah login (dari Hive)
-    final user = HiveHelper.getCurrentUser();
+    // Cek apakah user sudah login di Firebase
+    final userData = await FirebaseService.getCurrentUserData();
 
-    // Pastikan widget masih mounted sebelum navigasi
+    // Pastikan widget masih aktif
     if (!mounted) return;
 
-    if (user != null) {
-      // Sudah pernah register & login → langsung ke Dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => DashboardScreen(user: user)),
-      );
+    if (userData != null) {
+      // Sudah login → cek role
+      final String role = userData['role'] ?? 'pemain';
+
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => PlayerDashboardScreen(userData: userData)),
+        );
+      }
     } else {
-      // Belum ada user → ke halaman Login
+      // Belum login → ke halaman Login
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -63,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo QUIZ! (sama persis seperti desain awal kamu)
+            // Logo QUIZ! — persis seperti desain awal kamu
             Container(
               width: 220,
               height: 220,
@@ -99,6 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       color: Colors.white,
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
                     ),
                   ),
                   // Icon tanda tanya

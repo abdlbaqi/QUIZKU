@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "290741108396",
+    "project_id": "uas-project-cd5fe",
+    "storage_bucket": "uas-project-cd5fe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:290741108396:android:f7bffe05d9b8e01ee32909",
+        "android_client_info": {
+          "package_name": "com.example.quiz_uas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMqUFnmbOGD5wxRF0MEiCCfbRXqTSVnJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,22 +1,21 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart'; // penting untuk web & desktop
-
-import 'models/user_model.dart';       // ← User model + adapter
-import 'screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/auth/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Init Hive untuk semua platform (Android, iOS, Web, Windows, Mac, Linux)
-  await Hive.initFlutter();
-
-  // Register Adapter yang sudah di-generate otomatis
-  Hive.registerAdapter(UserAdapter());
-
-  // Buka box untuk menyimpan user (bisa dipakai di semua platform)
-  await Hive.openBox('userBox');
+  try {
+    // Inisialisasi Firebase untuk semua platform (Android, iOS, Web)
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Supaya kalau error inisialisasi terlihat jelas di debug console
+    debugPrint("Firebase initialization failed: $e");
+  }
 
   runApp(const MyApp());
 }
@@ -32,7 +31,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF7b2cbf),
-        fontFamily: 'Poppins', // optional, tambah font nanti kalau mau
       ),
       home: const SplashScreen(),
     );
