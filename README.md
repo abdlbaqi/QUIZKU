@@ -1,5 +1,11 @@
 # QuizKuAPP
 # Uap Project Mobile Lanjut
+##
+# Anggota Kelompok
+- Fuad Abdul Baqi
+- Sigit Yudhanto
+- Elsa Indriana
+- Anggun Safitri
 
 A new Flutter project.
 
