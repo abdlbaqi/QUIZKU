@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+// ignore: unused_import
 import 'package:http/http.dart' as http;
 
 // Cloudinary Service – pastikan file ini ada di lib/services/cloudinary_service.dart

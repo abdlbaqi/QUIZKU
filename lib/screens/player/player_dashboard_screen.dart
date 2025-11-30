@@ -57,7 +57,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                         backgroundColor: Colors.white,
                         child: CircleAvatar(
                           radius: 25,
-                          backgroundImage: const AssetImage('assets/hewan.jpeg'),
+                          backgroundImage: const AssetImage('assets/hewann.png'),
                           child: widget.userData['photoURL'] == null
                               ? const Icon(Icons.person, size: 30, color: Colors.grey)
                               : null,
@@ -102,7 +102,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset('assets/hewan.jpeg', width: 100, height: 100),
+                        Image.asset('assets/hewann.png', width: 100, height: 100),
                         const SizedBox(height: 18),
                         const Text(
                           'Mulai Kuis',

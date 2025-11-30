@@ -1,235 +1,504 @@
 // lib/screens/player/category_selection_screen.dart
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'quiz_screen.dart';
 
 class CategorySelectionScreen extends StatelessWidget {
   const CategorySelectionScreen({super.key});
 
-  // Tetap pakai assets/hewan.jpeg seperti kode kamu (bisa diganti nanti)
   final List<Map<String, dynamic>> categories = const [
     {
-      'name': 'MATEMATIKA',
-      'color': Color(0xFFFF9800), // orange
-      'icon': 'assets/hewan.jpeg', // tetap pakai ini
+      'name': 'Matematika',
+      'image': 'assets/hewann.png',
+      'icon': Icons.calculate_rounded,
+      'color': Color(0xFFFF6B6B),
+      'gradient': [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
       'categoryId': 'matematika',
     },
     {
-      'name': 'HEWAN',
-      'color': Color(0xFF2196F3), // biru
-      'icon': 'assets/hewan.jpeg',
+      'name': 'Hewan',
+      'image': 'assets/hewann.png',
+      'icon': Icons.pets_rounded,
+      'color': Color(0xFF4ECDC4),
+      'gradient': [Color(0xFF4ECDC4), Color(0xFF44A08D)],
       'categoryId': 'hewan',
     },
     {
-      'name': 'OLAHRAGA',
-      'color': Color(0xFFF44336), // merah
-      'icon': 'assets/hewan.jpeg',
+      'name': 'Olahraga',
+      'image': 'assets/hewann.png',
+      'icon': Icons.sports_soccer_rounded,
+      'color': Color(0xFFF38181),
+      'gradient': [Color(0xFFF38181), Color(0xFFFCE38A)],
       'categoryId': 'olahraga',
     },
     {
-      'name': 'UMUM',
-      'color': Color(0xFF4CAF50), // hijau
-      'icon': 'assets/hewan.jpeg',
+      'name': 'Pengetahuan Umum',
+      'image': 'assets/hewann.png',
+      'icon': Icons.school_rounded,
+      'color': Color(0xFF95E1D3),
+      'gradient': [Color(0xFF95E1D3), Color(0xFFAAF683)],
       'categoryId': 'umum',
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final isLandscape = size.width > size.height;
+    final padding = EdgeInsets.only(
+      bottom: MediaQuery.of(context).viewInsets.bottom,
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 26),
-          onPressed: () => Navigator.pop(context),
-        ),
-        centerTitle: true,
-        title: const Text(
-          'PILIH KATEGORI',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Background gradient utama
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+        leading: Padding(
+          padding: EdgeInsets.only(
+            left: isTablet ? 16 : 12,
+            top: 8,
+            bottom: 8,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: isTablet ? 24 : 20,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                ),
               ),
             ),
           ),
+        ),
+      ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0F0C29),
+              Color(0xFF302B63),
+              Color(0xFF24243E),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: padding,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  SizedBox(height: isLandscape ? 16 : 24),
+                  
+                  // Header dengan glassmorphism
+                  _buildHeader(context, isTablet, isLandscape),
+                  
+                  SizedBox(height: isLandscape ? 20 : 32),
+                  
+                  // Grid Kategori dengan glassmorphism
+                  _buildCategoryGrid(
+                    context,
+                    isTablet,
+                    isLandscape,
+                  ),
 
-          // Wave dekorasi atas
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF9d4edd), Color(0xFF7b2cbf)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(60),
-                  bottomRight: Radius.circular(60),
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, 8)),
+                  SizedBox(height: isLandscape ? 16 : 24),
+
+                  // Footer
+                  _buildFooter(isTablet, isLandscape),
+                  
+                  SizedBox(height: 24),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
 
-          SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildHeader(BuildContext context, bool isTablet, bool isLandscape) {
+    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final verticalPadding = isLandscape ? 20.0 : (isTablet ? 32.0 : 28.0);
+    final titleSize = isTablet ? 38.0 : (isLandscape ? 26.0 : 32.0);
+    final subtitleSize = isTablet ? 18.0 : (isLandscape ? 15.0 : 16.0);
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      padding: EdgeInsets.symmetric(
+        vertical: verticalPadding,
+        horizontal: horizontalPadding - 8,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.15),
+            Colors.white.withOpacity(0.08),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Pilih Kategori',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: titleSize,
+                  letterSpacing: 0.5,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(0, 2),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: isLandscape ? 8 : 10),
+              Container(
+                height: 4,
+                width: isTablet ? 80 : 60,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFAB47BC),
+                      Color(0xFFEC407A),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFAB47BC).withOpacity(0.5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: isLandscape ? 10 : 14),
+              Text(
+                'Mulai petualangan belajarmu!',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.85),
+                  fontSize: subtitleSize,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryGrid(
+    BuildContext context,
+    bool isTablet,
+    bool isLandscape,
+  ) {
+    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final crossAxisCount = isLandscape
+        ? (isTablet ? 4 : 3)
+        : (isTablet ? 3 : 2);
+    
+    final spacing = isTablet ? 24.0 : 18.0;
+    // Tingkatkan aspect ratio agar tidak terpotong
+    final childAspectRatio = isLandscape 
+        ? 1.1 
+        : (isTablet ? 1.0 : 0.95);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          childAspectRatio: childAspectRatio,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+        ),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          return _buildCategoryCard(context, cat, index, isTablet, isLandscape);
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(
+    BuildContext context,
+    Map<String, dynamic> cat,
+    int index,
+    bool isTablet,
+    bool isLandscape,
+  ) {
+    final borderRadius = isTablet ? 32.0 : 26.0;
+    final imageSize = isTablet ? 85.0 : (isLandscape ? 55.0 : 65.0);
+    final fontSize = isTablet ? 17.0 : (isLandscape ? 12.0 : 14.0);
+    final padding = isTablet ? 20.0 : (isLandscape ? 10.0 : 14.0);
+
+    return Hero(
+      tag: 'cat_${cat['categoryId']}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(borderRadius),
+          onTap: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                transitionDuration: const Duration(milliseconds: 500),
+                pageBuilder: (_, __, ___) => QuizScreen(categoryId: cat['categoryId']),
+                transitionsBuilder: (_, animation, __, child) {
+                  var curve = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+                  return FadeTransition(
+                    opacity: curve,
+                    child: ScaleTransition(
+                      scale: Tween<double>(begin: 0.95, end: 1.0).animate(curve),
+                      child: child,
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.18),
+                  Colors.white.withOpacity(0.08),
+                ],
+              ),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.25),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: cat['color'].withOpacity(0.35),
+                  blurRadius: isTablet ? 25 : 20,
+                  offset: Offset(0, isTablet ? 12 : 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Stack(
                   children: [
-                    // Judul dengan icon
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.category_outlined, color: Colors.white, size: 30),
-                        SizedBox(width: 12),
-                        Text(
-                          'Pilih Kategori Quiz',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
+                    // Gradient overlay
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              cat['gradient'][0].withOpacity(0.25),
+                              cat['gradient'][1].withOpacity(0.08),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Grid Kategori (SUDAH BISA DIKLIK!)
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.10),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
                       ),
-                      child: SizedBox(
-                        height: 380,
-                        child: GridView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          shrinkWrap: true,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: 0.95,
+                    ),
+                    
+                    // Decorative circles
+                    Positioned(
+                      top: -40,
+                      right: -40,
+                      child: Container(
+                        width: isTablet ? 130 : 110,
+                        height: isTablet ? 130 : 110,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              cat['color'].withOpacity(0.25),
+                              cat['color'].withOpacity(0.0),
+                            ],
                           ),
-                          itemCount: categories.length,
-                          itemBuilder: (context, index) {
-                            final cat = categories[index];
-
-                            return Hero(
-                              tag: 'category_${cat['categoryId']}',
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(24),
-                                  onTap: () {
-                                    // MASUK KE QUIZ SCREEN SESUAI KATEGORI
-                                    Navigator.push(
-                                      context,
-                                      PageRouteBuilder(
-                                        pageBuilder: (context, animation, secondaryAnimation) =>
-                                            QuizScreen(categoryId: cat['categoryId']),
-                                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                          const begin = Offset(1.0, 0.0);
-                                          const end = Offset.zero;
-                                          const curve = Curves.easeInOut;
-                                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                          return SlideTransition(position: animation.drive(tween), child: child);
-                                        },
-                                        transitionDuration: const Duration(milliseconds: 500),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: cat['color'],
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.25),
-                                          blurRadius: 15,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        // Gambar dari assets/hewan.jpeg (bisa diganti nanti)
-                                        Container(
-                                          padding: const EdgeInsets.all(18),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Image.asset(
-                                            cat['icon'],
-                                            width: 70,
-                                            height: 70,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
-                                        Text(
-                                          cat['name'],
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.2,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Content - dengan padding yang lebih baik
+                    Padding(
+                      padding: EdgeInsets.all(padding),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Image container dengan glassmorphism
+                          Container(
+                            width: imageSize,
+                            height: imageSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  cat['gradient'][0],
+                                  cat['gradient'][1],
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: cat['color'].withOpacity(0.5),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  cat['image'],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    cat['icon'],
+                                    size: imageSize * 0.45,
+                                    color: cat['color'],
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 36),
-
-                    // Info bawah
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 28),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Pilih kategori untuk memulai kuis seru!',
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                        textAlign: TextAlign.center,
+                            ),
+                          ),
+                          
+                          SizedBox(height: isLandscape ? 6 : 10),
+                          
+                          // Category name dengan constraint
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: isLandscape ? 2 : 4),
+                            child: Text(
+                              cat['name'],
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.3,
+                                height: 1.2,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.4),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          SizedBox(height: isLandscape ? 5 : 8),
+                          
+                          // Play button
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 16 : (isLandscape ? 10 : 12),
+                              vertical: isTablet ? 8 : (isLandscape ? 5 : 6),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.4),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.play_arrow_rounded,
+                                  color: Colors.white,
+                                  size: isTablet ? 18 : (isLandscape ? 14 : 15),
+                                ),
+                                SizedBox(width: isTablet ? 5 : 3),
+                                Text(
+                                  'Mulai',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: isTablet ? 13 : (isLandscape ? 10 : 11),
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -237,7 +506,72 @@ class CategorySelectionScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(bool isTablet, bool isLandscape) {
+    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final fontSize = isTablet ? 15.0 : (isLandscape ? 12.0 : 14.0);
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      padding: EdgeInsets.symmetric(
+        vertical: isTablet ? 18 : (isLandscape ? 12 : 16),
+        horizontal: isTablet ? 28 : 20,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.12),
+            Colors.white.withOpacity(0.06),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.touch_app_rounded,
+                color: Colors.white.withOpacity(0.6),
+                size: isTablet ? 20 : (isLandscape ? 16 : 18),
+              ),
+              SizedBox(width: isTablet ? 10 : 8),
+              Flexible(
+                child: Text(
+                  'Ketuk kategori untuk memulai',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.75),
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
