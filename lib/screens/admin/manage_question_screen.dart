@@ -1,10 +1,16 @@
-// lib/screens/admin/manage_questions_screen.dart
+// lib/screens/admin/manage_questions.dart
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+
+// Cloudinary Service – pastikan file ini ada di lib/services/cloudinary_service.dart
+import '../../services/cloudinary_service.dart';
 
 class ManageQuestionsScreen extends StatefulWidget {
   const ManageQuestionsScreen({super.key});
@@ -25,10 +31,14 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
   String _selectedCategory = 'umum';
   bool _isEditing = false;
   String? _editingDocId;
-  File? _selectedImage;
-  String? _currentImageUrl;
-  String? _tempImagePath;
 
+  // Image states
+  File? _selectedImage;           // mobile
+  Uint8List? _webImageBytes;      // web
+  String? _currentImageUrl;       // URL dari Firestore
+  bool _removeExistingImage = false;
+
+  bool _isSaving = false;
   final ImagePicker _picker = ImagePicker();
 
   final List<Map<String, String>> categoryOptions = [
@@ -48,75 +58,127 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     super.dispose();
   }
 
+  // Pilih gambar
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
-    if (pickedFile != null) {
-      setState(() {
-        if (kIsWeb) {
-          _tempImagePath = pickedFile.path;
+    try {
+      final XFile? picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (picked == null) return;
+
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _webImageBytes = bytes;
           _selectedImage = null;
-        } else {
-          _selectedImage = File(pickedFile.path);
-          _tempImagePath = null;
-        }
-      });
+          _currentImageUrl = null;
+          _removeExistingImage = false;
+        });
+      } else {
+        setState(() {
+          _selectedImage = File(picked.path);
+          _webImageBytes = null;
+          _currentImageUrl = null;
+          _removeExistingImage = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
+  // Hapus gambar dari UI
   void _removeImage() {
     setState(() {
       _selectedImage = null;
+      _webImageBytes = null;
+      if (_currentImageUrl != null) _removeExistingImage = true;
       _currentImageUrl = null;
-      _tempImagePath = null;
     });
   }
 
-  Future<void> _saveQuestion() async {
-    if (!_formKey.currentState!.validate()) return;
+  // Upload ke Cloudinary (jika ada gambar baru)
+  Future<String?> _uploadImageIfAny() async {
+    try {
+      // Hapus gambar & tidak ada gambar baru → return null
+      if (_removeExistingImage && _selectedImage == null && _webImageBytes == null) {
+        return null;
+      }
 
-    String? imageUrl = _currentImageUrl;
+      // Tidak ada gambar baru → pakai URL lama
+      if (_selectedImage == null && _webImageBytes == null) {
+        return _currentImageUrl;
+      }
 
-    if (!kIsWeb && _selectedImage != null) {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('question_images')
-          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await ref.putFile(_selectedImage!);
-      imageUrl = await ref.getDownloadURL();
+      final String? uploadedUrl = await CloudinaryService.uploadImage(
+        imageFile: !kIsWeb ? _selectedImage : null,
+        webImageBytes: kIsWeb ? _webImageBytes : null,
+        fileName: 'soal_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+
+      if (uploadedUrl == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal upload ke Cloudinary'), backgroundColor: Colors.red),
+          );
+        }
+        return _currentImageUrl; // fallback
+      }
+      return uploadedUrl;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error upload: $e'), backgroundColor: Colors.red),
+        );
+      }
+      return _currentImageUrl;
     }
+  }
 
-    final data = {
-      'question': _questionCtrl.text.trim(),
-      'option_a': _aCtrl.text.trim(),
-      'option_b': _bCtrl.text.trim(),
-      'option_c': _cCtrl.text.trim(),
-      'option_d': _dCtrl.text.trim(),
-      'correct_answer': _correctAnswer,
-      'category': _selectedCategory,
-      'image_url': imageUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+  // Simpan / Update soal
+  Future<void> _saveQuestion() async {
+    if (!_formKey.currentState!.validate() || _isSaving) return;
+
+    setState(() => _isSaving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Menyimpan...')));
 
     try {
+      final String? imageUrl = await _uploadImageIfAny();
+
+      final data = {
+        'question': _questionCtrl.text.trim(),
+        'option_a': _aCtrl.text.trim(),
+        'option_b': _bCtrl.text.trim(),
+        'option_c': _cCtrl.text.trim(),
+        'option_d': _dCtrl.text.trim(),
+        'correct_answer': _correctAnswer,
+        'category': _selectedCategory,
+        'image_url': imageUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
       if (_isEditing && _editingDocId != null) {
         await FirebaseFirestore.instance.collection('questions').doc(_editingDocId).update(data);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Soal berhasil diperbarui!'), backgroundColor: Colors.green),
-        );
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('Soal berhasil diperbarui!'), backgroundColor: Colors.green));
       } else {
         await FirebaseFirestore.instance.collection('questions').add({
           ...data,
           'createdAt': FieldValue.serverTimestamp(),
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Soal berhasil ditambahkan!'), backgroundColor: Colors.green),
-        );
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('Soal berhasil ditambahkan!'), backgroundColor: Colors.green));
       }
+
       _clearForm();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -130,8 +192,9 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     _correctAnswer = data['correct_answer'] ?? 'a';
     _selectedCategory = data['category'] ?? 'umum';
     _currentImageUrl = data['image_url'];
-    _tempImagePath = data['image_url'];
     _selectedImage = null;
+    _webImageBytes = null;
+    _removeExistingImage = false;
     _isEditing = true;
     _editingDocId = doc.id;
     setState(() {});
@@ -140,14 +203,14 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
   Future<void> _deleteQuestion(String docId) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Hapus Soal?', style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('Soal ini akan dihapus permanen.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(context, true),
             child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
@@ -177,8 +240,9 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     _correctAnswer = 'a';
     _selectedCategory = 'umum';
     _selectedImage = null;
+    _webImageBytes = null;
     _currentImageUrl = null;
-    _tempImagePath = null;
+    _removeExistingImage = false;
     _isEditing = false;
     _editingDocId = null;
     setState(() {});
@@ -186,24 +250,19 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Preview gambar — 100% AMAN & JELAS
     Widget? imagePreview;
-    if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+    if (_webImageBytes != null) {
+      imagePreview = Image.memory(_webImageBytes!, fit: BoxFit.contain, height: 250);
+    } else if (!kIsWeb && _selectedImage != null) {
+      imagePreview = Image.file(_selectedImage!, fit: BoxFit.contain, height: 250);
+    } else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
       imagePreview = Image.network(
         _currentImageUrl!,
         fit: BoxFit.contain,
-        width: double.infinity,
         height: 250,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return const Center(child: CircularProgressIndicator(color: Colors.purple));
-        },
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, size: 80, color: Colors.red)),
+        loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.purple)),
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 80, color: Colors.red),
       );
-    } else if (!kIsWeb && _selectedImage != null) {
-      imagePreview = Image.file(_selectedImage!, fit: BoxFit.contain, width: double.infinity, height: 250);
-    } else if (kIsWeb && _tempImagePath != null) {
-      imagePreview = Image.network(_tempImagePath!, fit: BoxFit.contain, width: double.infinity, height: 250);
     }
 
     return Scaffold(
@@ -215,17 +274,13 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
       ),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: LinearGradient(colors: [Color(0xFF1a1a2e), Color(0xFF16213e)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
             children: [
-              // FORM
+              // ==================== FORM ====================
               Expanded(
                 flex: 2,
                 child: Card(
@@ -255,8 +310,10 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                                 filled: true,
                                 fillColor: Colors.purple[50],
                               ),
-                              items: categoryOptions.map((cat) => DropdownMenuItem(value: cat['value'], child: Text(cat['label']!))).toList(),
-                              onChanged: (val) => setState(() => _selectedCategory = val!),
+                              items: categoryOptions
+                                  .map((e) => DropdownMenuItem(value: e['value'], child: Text(e['label']!)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _selectedCategory = v!),
                             ),
                             const SizedBox(height: 20),
 
@@ -272,7 +329,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                                 ),
                                 const SizedBox(width: 10),
-                                if (_selectedImage != null || _currentImageUrl != null || _tempImagePath != null)
+                                if (_selectedImage != null || _webImageBytes != null || _currentImageUrl != null)
                                   ElevatedButton.icon(
                                     onPressed: _removeImage,
                                     icon: const Icon(Icons.delete),
@@ -283,7 +340,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Preview Gambar — BESAR & JELAS!
+                            // Preview Gambar
                             if (imagePreview != null)
                               Container(
                                 width: double.infinity,
@@ -291,7 +348,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: Colors.purple, width: 3),
-                                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: const Offset(0, 5))],
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
                                 ),
                                 child: ClipRRect(borderRadius: BorderRadius.circular(18), child: imagePreview),
                               ),
@@ -312,7 +369,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                             ),
                             const SizedBox(height: 15),
 
-                            // Pilihan Jawaban
+                            // Pilihan A-D
                             ...['A', 'B', 'C', 'D'].asMap().entries.map((e) {
                               final ctrl = [_aCtrl, _bCtrl, _cCtrl, _dCtrl][e.key];
                               return Padding(
@@ -321,7 +378,9 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                                   controller: ctrl,
                                   decoration: InputDecoration(
                                     labelText: 'Pilihan ${e.value}',
-                                    prefixIcon: CircleAvatar(backgroundColor: Colors.purple, child: Text(e.value, style: const TextStyle(color: Colors.white))),
+                                    prefixIcon: CircleAvatar(
+                                        backgroundColor: Colors.purple,
+                                        child: Text(e.value, style: const TextStyle(color: Colors.white))),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                                     filled: true,
                                     fillColor: Colors.purple[50],
@@ -329,7 +388,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                                   validator: (v) => v!.trim().isEmpty ? 'Wajib diisi' : null,
                                 ),
                               );
-                            }).toList(),
+                            }),
 
                             const SizedBox(height: 20),
                             const Text('Jawaban Benar:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -337,29 +396,52 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                               children: ['a', 'b', 'c', 'd'].map((opt) {
                                 return Row(
                                   children: [
-                                    Radio<String>(value: opt, groupValue: _correctAnswer, onChanged: (val) => setState(() => _correctAnswer = val!), activeColor: Colors.green),
+                                    Radio<String>(
+                                      value: opt,
+                                      groupValue: _correctAnswer,
+                                      onChanged: (v) => setState(() => _correctAnswer = v!),
+                                      activeColor: Colors.green,
+                                    ),
                                     Text(opt.toUpperCase(), style: const TextStyle(fontSize: 16)),
                                     const SizedBox(width: 20),
                                   ],
                                 );
                               }).toList(),
                             ),
-
                             const SizedBox(height: 30),
+
+                            // TOMBOL SIMPAN – SUDAH DIPERBAIKI 100%
                             SizedBox(
                               width: double.infinity,
                               height: 65,
                               child: ElevatedButton(
-                                onPressed: _saveQuestion,
+                                onPressed: _isSaving ? null : _saveQuestion,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _isEditing ? Colors.orange : Colors.green,
                                   foregroundColor: Colors.white,
                                   elevation: 20,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                                 ),
-                                child: Text(_isEditing ? 'UPDATE SOAL' : 'SIMPAN SOAL', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                child: _isSaving
+                                    ? const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Text('Menyimpan...', style: TextStyle(fontSize: 18)),
+                                        ],
+                                      )
+                                    : Text(
+                                        _isEditing ? 'UPDATE SOAL' : 'SIMPAN SOAL',
+                                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                      ),
                               ),
                             ),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
@@ -370,7 +452,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
 
               const SizedBox(width: 20),
 
-              // DAFTAR SOAL
+              // ==================== LIST SOAL ====================
               Expanded(
                 flex: 1,
                 child: Card(
@@ -380,36 +462,49 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
-                        child: const Center(child: Text('Daftar Soal', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white))),
+                        decoration: const BoxDecoration(
+                            color: Colors.redAccent, borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+                        child: const Center(
+                            child: Text('Daftar Soal',
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white))),
                       ),
                       Expanded(
                         child: StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance.collection('questions').orderBy('updatedAt', descending: true).snapshots(),
+                          stream: FirebaseFirestore.instance
+                              .collection('questions')
+                              .orderBy('updatedAt', descending: true)
+                              .snapshots(),
                           builder: (context, snapshot) {
-                            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Colors.purple));
+                            if (!snapshot.hasData) {
+                              return const Center(child: CircularProgressIndicator(color: Colors.purple));
+                            }
                             final docs = snapshot.data!.docs;
-                            if (docs.isEmpty) return const Center(child: Text('Belum ada soal', style: TextStyle(fontSize: 18)));
+                            if (docs.isEmpty) {
+                              return const Center(child: Text('Belum ada soal', style: TextStyle(fontSize: 18)));
+                            }
 
                             return ListView.builder(
                               itemCount: docs.length,
                               itemBuilder: (ctx, i) {
                                 final data = docs[i].data() as Map<String, dynamic>;
                                 final docId = docs[i].id;
-                                final cat = data['category'] ?? 'umum';
+                                final img = data['image_url'] as String?;
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   elevation: 5,
                                   child: ListTile(
-                                    leading: data['image_url'] != null
+                                    leading: img != null && img.isNotEmpty
                                         ? ClipRRect(
                                             borderRadius: BorderRadius.circular(10),
-                                            child: Image.network(data['image_url'], width: 60, height: 60, fit: BoxFit.cover),
+                                            child: Image.network(img, width: 60, height: 60, fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.red)),
                                           )
                                         : const Icon(Icons.quiz, color: Colors.purple, size: 40),
-                                    title: Text(data['question'], maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text('Kategori: ${cat.toUpperCase()} | Jawaban: ${data['correct_answer'].toString().toUpperCase()}'),
+                                    title: Text(data['question'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text(
+                                        'Kategori: ${(data['category'] ?? 'umum').toString().toUpperCase()} | Jawaban: ${(data['correct_answer'] ?? '').toString().toUpperCase()}'),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
