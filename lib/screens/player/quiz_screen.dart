@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firebase_service.dart';
 import 'package:confetti/confetti.dart';
+import 'dart:ui';
 
 class QuizScreen extends StatefulWidget {
   final String categoryId;
@@ -111,15 +112,30 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        backgroundColor: Colors.white,
-        title: const Text('SELESAI!', textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 38, fontWeight: FontWeight.bold, color: Colors.purple)),
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text(
+          'SELESAI!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 38, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.emoji_events, size: 100, color: Colors.amber),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFC107), Color(0xFFFF8F00)],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emoji_events, size: 80, color: Colors.white),
+            ),
             const SizedBox(height: 20),
-            Text('Skor Akhir: $score', style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Colors.purple)),
+            Text(
+              'Skor Akhir: $score',
+              style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
           ],
         ),
         actions: [
@@ -127,11 +143,14 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             child: ElevatedButton(
               onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
-                padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
+                backgroundColor: const Color(0xFFAB47BC),
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              child: const Text('KEMBALI KE MENU', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              child: const Text(
+                'KEMBALI KE MENU',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -141,17 +160,28 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+
     if (isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFF667eea),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: Colors.white, strokeWidth: 6),
-              SizedBox(height: 30),
-              Text('Memuat soal...', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-            ],
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
+            ),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: Colors.white, strokeWidth: 6),
+                SizedBox(height: 30),
+                Text('Memuat soal...', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              ],
+            ),
           ),
         ),
       );
@@ -159,21 +189,34 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
     if (hasError || selectedQuestions.isEmpty) {
       return Scaffold(
-        backgroundColor: const Color(0xFF667eea),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.sentiment_dissatisfied, size: 100, color: Colors.white70),
-              const SizedBox(height: 20),
-              const Text('Belum ada soal di kategori ini', style: TextStyle(color: Colors.white, fontSize: 22), textAlign: TextAlign.center),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF667eea)),
-                child: const Text('Kembali', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ],
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.sentiment_dissatisfied, size: 100, color: Colors.white70),
+                const SizedBox(height: 20),
+                const Text('Belum ada soal di kategori ini', style: TextStyle(color: Colors.white, fontSize: 22), textAlign: TextAlign.center),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF302B63),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  child: const Text('Kembali', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -186,163 +229,335 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
         .map((e) => data['option_$e']?.toString().trim() ?? 'Pilihan $e')
         .toList();
 
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Header - Progress & Skor
+              // Header - Progress & Skor dengan glassmorphism
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(isTablet ? 24.0 : 20.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(20)),
-                      child: Text('Soal ${currentIndex + 1}/10', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 20 : 16,
+                        vertical: isTablet ? 12 : 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.2),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Text(
+                            'Soal ${currentIndex + 1}/10',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isTablet ? 20 : 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(25)),
-                      child: Text('Skor: $score', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 24 : 20,
+                        vertical: isTablet ? 12 : 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFC107), Color(0xFFFF8F00)],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFC107).withOpacity(0.4),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'Skor: $score',
+                        style: TextStyle(
+                          fontSize: isTablet ? 24 : 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 10),
-
-              // GAMBAR SOAL - TIDAK TERPOTONG LAGI!
-              if (imageUrl != null && imageUrl.isNotEmpty)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  height: 220,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain, // INI YANG PENTING! Gambar utuh tidak terpotong
-                      width: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                          loadingProgress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.purple)),
-                      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, size: 80, color: Colors.grey)),
-                    ),
-                  ),
-                ),
-              if (imageUrl != null && imageUrl.isNotEmpty) const SizedBox(height: 25),
-
-              // PERTANYAAN - TEXT JELAS & SCROLLABLE
+              // Main Content - Scrollable untuk fit semua konten
               Expanded(
-                flex: 2,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(25),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 15, offset: const Offset(0, 8))],
-                  ),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      questionText,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87, height: 1.4),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              // PILIHAN JAWABAN - CANTIK & JELAS
-              Expanded(
-                flex: 3,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 4,
-                  itemBuilder: (context, i) {
-                    final letter = String.fromCharCode(65 + i);
-                    final optionText = options[i];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: GestureDetector(
-                          onTap: () => _answerQuestion(letter.toLowerCase()),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: isAnswered
-                                  ? (letter.toLowerCase() == correctAnswer
-                                      ? Colors.green.withOpacity(0.9)
-                                      : letter.toLowerCase() == selectedAnswer
-                                          ? Colors.red.withOpacity(0.9)
-                                          : Colors.white.withOpacity(0.2))
-                                  : Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 32.0 : 20.0),
+                  child: Column(
+                    children: [
+                      // GAMBAR SOAL - Tidak terpotong!
+                      if (hasImage) ...[
+                        Container(
+                          constraints: BoxConstraints(
+                            maxHeight: isTablet ? 300 : 200,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 2,
                             ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: Colors.black87,
-                                  child: Text(letter, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.contain, // PENTING: Gambar tidak terpotong!
+                              width: double.infinity,
+                              loadingBuilder: (context, child, loadingProgress) =>
+                                  loadingProgress == null
+                                      ? child
+                                      : Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(40),
+                                            child: CircularProgressIndicator(
+                                              color: const Color(0xFFAB47BC),
+                                              strokeWidth: 4,
+                                            ),
+                                          ),
+                                        ),
+                              errorBuilder: (_, __, ___) => const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: Icon(Icons.broken_image, size: 80, color: Colors.grey),
                                 ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: Text(
-                                    optionText,
-                                    style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: isTablet ? 28 : 24),
+                      ],
+
+                      // PERTANYAAN - Jelas & Tidak perlu scroll
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(isTablet ? 28.0 : 24.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Text(
+                              questionText,
+                              style: TextStyle(
+                                fontSize: isTablet ? 26 : 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.4,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 6,
                                   ),
-                                ),
-                                if (isAnswered && letter.toLowerCase() == correctAnswer)
-                                  const Icon(Icons.check_circle, color: Colors.white, size: 40),
-                                if (isAnswered && letter.toLowerCase() == selectedAnswer && selectedAnswer != correctAnswer)
-                                  const Icon(Icons.cancel, color: Colors.white, size: 40),
-                              ],
+                                ],
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
                       ),
-                    );
-                  },
+
+                      SizedBox(height: isTablet ? 28 : 24),
+
+                      // PILIHAN JAWABAN - Semua terlihat tanpa scroll
+                      ...List.generate(4, (i) {
+                        final letter = String.fromCharCode(65 + i);
+                        final optionText = options[i];
+
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: isTablet ? 18.0 : 16.0),
+                          child: ScaleTransition(
+                            scale: _scaleAnimation,
+                            child: GestureDetector(
+                              onTap: () => _answerQuestion(letter.toLowerCase()),
+                              child: Container(
+                                padding: EdgeInsets.all(isTablet ? 22.0 : 18.0),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: isAnswered
+                                        ? (letter.toLowerCase() == correctAnswer
+                                            ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
+                                            : letter.toLowerCase() == selectedAnswer
+                                                ? [const Color(0xFFE53935), const Color(0xFFEF5350)]
+                                                : [Colors.white.withOpacity(0.15), Colors.white.withOpacity(0.08)])
+                                        : [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.1)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: isTablet ? 54 : 50,
+                                          height: isTablet ? 54 : 50,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.white.withOpacity(0.3),
+                                                Colors.white.withOpacity(0.2),
+                                              ],
+                                            ),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white.withOpacity(0.5),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              letter,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: isTablet ? 26 : 24,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: isTablet ? 20 : 16),
+                                        Expanded(
+                                          child: Text(
+                                            optionText,
+                                            style: TextStyle(
+                                              fontSize: isTablet ? 20 : 18,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ),
+                                        if (isAnswered && letter.toLowerCase() == correctAnswer)
+                                          Icon(
+                                            Icons.check_circle_rounded,
+                                            color: Colors.white,
+                                            size: isTablet ? 36 : 32,
+                                          ),
+                                        if (isAnswered &&
+                                            letter.toLowerCase() == selectedAnswer &&
+                                            selectedAnswer != correctAnswer)
+                                          Icon(
+                                            Icons.cancel_rounded,
+                                            color: Colors.white,
+                                            size: isTablet ? 36 : 32,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+
+                      // Spacing untuk tombol
+                      SizedBox(height: isAnswered ? (isTablet ? 20 : 16) : 80),
+                    ],
+                  ),
                 ),
               ),
 
-              // TOMBOL LANJUT
+              // TOMBOL LANJUT - Fixed di bawah
               if (isAnswered)
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(isTablet ? 24.0 : 20.0),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 70,
+                    height: isTablet ? 70 : 65,
                     child: ElevatedButton(
                       onPressed: _nextQuestion,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF667eea),
+                        foregroundColor: const Color(0xFF302B63),
                         elevation: 20,
+                        shadowColor: Colors.black.withOpacity(0.3),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                       ),
                       child: Text(
                         currentIndex < 9 ? 'SOAL BERIKUTNYA' : 'LIHAT HASIL',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: isTablet ? 22 : 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),

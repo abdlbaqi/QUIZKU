@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class CloudinaryService {
   static const String cloudName = "dgfjnrntx";
-  static const String uploadPreset = "fuadmunmun"; // pastikan ini unsigned preset
+  static const String uploadPreset = "fuadmunmun"; 
 
   static Future<String?> uploadImage({
     File? imageFile,

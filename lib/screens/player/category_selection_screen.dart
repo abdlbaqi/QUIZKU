@@ -46,9 +46,6 @@ class CategorySelectionScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
     final isLandscape = size.width > size.height;
-    final padding = EdgeInsets.only(
-      bottom: MediaQuery.of(context).viewInsets.bottom,
-    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -110,35 +107,48 @@ class CategorySelectionScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: padding,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  SizedBox(height: isLandscape ? 16 : 24),
-                  
-                  // Header dengan glassmorphism
-                  _buildHeader(context, isTablet, isLandscape),
-                  
-                  SizedBox(height: isLandscape ? 20 : 32),
-                  
-                  // Grid Kategori dengan glassmorphism
-                  _buildCategoryGrid(
-                    context,
-                    isTablet,
-                    isLandscape,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 32.0 : 20.0,
+                      vertical: isLandscape ? 12.0 : 16.0,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: isLandscape ? 8 : 16),
+                        
+                        // Header dengan glassmorphism
+                        _buildHeader(context, isTablet, isLandscape),
+                        
+                        SizedBox(height: isLandscape ? 16 : 24),
+                        
+                        // Grid Kategori dengan glassmorphism
+                        _buildCategoryGrid(
+                          context,
+                          isTablet,
+                          isLandscape,
+                        ),
 
-                  SizedBox(height: isLandscape ? 16 : 24),
+                        SizedBox(height: isLandscape ? 12 : 16),
 
-                  // Footer
-                  _buildFooter(isTablet, isLandscape),
-                  
-                  SizedBox(height: 24),
-                ],
-              ),
-            ),
+                        // Footer
+                        _buildFooter(isTablet, isLandscape),
+                        
+                        SizedBox(height: isLandscape ? 8 : 16),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -146,19 +156,18 @@ class CategorySelectionScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isTablet, bool isLandscape) {
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
-    final verticalPadding = isLandscape ? 20.0 : (isTablet ? 32.0 : 28.0);
-    final titleSize = isTablet ? 38.0 : (isLandscape ? 26.0 : 32.0);
-    final subtitleSize = isTablet ? 18.0 : (isLandscape ? 15.0 : 16.0);
+    final verticalPadding = isLandscape ? 16.0 : (isTablet ? 28.0 : 24.0);
+    final horizontalPadding = isTablet ? 32.0 : 24.0;
+    final titleSize = isTablet ? 36.0 : (isLandscape ? 24.0 : 28.0);
+    final subtitleSize = isTablet ? 17.0 : (isLandscape ? 14.0 : 15.0);
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
       padding: EdgeInsets.symmetric(
         vertical: verticalPadding,
-        horizontal: horizontalPadding - 8,
+        horizontal: horizontalPadding,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -180,7 +189,7 @@ class CategorySelectionScreen extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Column(
@@ -203,10 +212,10 @@ class CategorySelectionScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: isLandscape ? 8 : 10),
+              SizedBox(height: isLandscape ? 6 : 8),
               Container(
                 height: 4,
-                width: isTablet ? 80 : 60,
+                width: isTablet ? 70 : 50,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
@@ -224,15 +233,16 @@ class CategorySelectionScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: isLandscape ? 10 : 14),
+              SizedBox(height: isLandscape ? 8 : 10),
               Text(
-                'Mulai petualangan belajarmu!',
+                'Ayo Mulaii!',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.85),
                   fontSize: subtitleSize,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.3,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -246,34 +256,30 @@ class CategorySelectionScreen extends StatelessWidget {
     bool isTablet,
     bool isLandscape,
   ) {
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
     final crossAxisCount = isLandscape
         ? (isTablet ? 4 : 3)
         : (isTablet ? 3 : 2);
     
-    final spacing = isTablet ? 24.0 : 18.0;
-    // Tingkatkan aspect ratio agar tidak terpotong
+    final spacing = isTablet ? 20.0 : 16.0;
+    // Aspect ratio yang lebih besar untuk menghindari overflow
     final childAspectRatio = isLandscape 
-        ? 1.1 
-        : (isTablet ? 1.0 : 0.95);
+        ? 1.15
+        : (isTablet ? 1.05 : 1.0);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          childAspectRatio: childAspectRatio,
-          crossAxisSpacing: spacing,
-          mainAxisSpacing: spacing,
-        ),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final cat = categories[index];
-          return _buildCategoryCard(context, cat, index, isTablet, isLandscape);
-        },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
       ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final cat = categories[index];
+        return _buildCategoryCard(context, cat, index, isTablet, isLandscape);
+      },
     );
   }
 
@@ -284,10 +290,9 @@ class CategorySelectionScreen extends StatelessWidget {
     bool isTablet,
     bool isLandscape,
   ) {
-    final borderRadius = isTablet ? 32.0 : 26.0;
-    final imageSize = isTablet ? 85.0 : (isLandscape ? 55.0 : 65.0);
-    final fontSize = isTablet ? 17.0 : (isLandscape ? 12.0 : 14.0);
-    final padding = isTablet ? 20.0 : (isLandscape ? 10.0 : 14.0);
+    final borderRadius = isTablet ? 28.0 : 24.0;
+    final imageSize = isTablet ? 75.0 : (isLandscape ? 50.0 : 60.0);
+    final fontSize = isTablet ? 15.0 : (isLandscape ? 11.0 : 13.0);
 
     return Hero(
       tag: 'cat_${cat['categoryId']}',
@@ -364,8 +369,8 @@ class CategorySelectionScreen extends StatelessWidget {
                       top: -40,
                       right: -40,
                       child: Container(
-                        width: isTablet ? 130 : 110,
-                        height: isTablet ? 130 : 110,
+                        width: isTablet ? 120 : 100,
+                        height: isTablet ? 120 : 100,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
@@ -378,127 +383,135 @@ class CategorySelectionScreen extends StatelessWidget {
                       ),
                     ),
                     
-                    // Content - dengan padding yang lebih baik
-                    Padding(
-                      padding: EdgeInsets.all(padding),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Image container dengan glassmorphism
-                          Container(
-                            width: imageSize,
-                            height: imageSize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  cat['gradient'][0],
-                                  cat['gradient'][1],
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: cat['color'].withOpacity(0.5),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Container(
-                              margin: const EdgeInsets.all(3),
+                    // Content - CENTERED
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 16.0 : 12.0,
+                          vertical: isTablet ? 18.0 : 14.0,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Image container dengan glassmorphism
+                            Container(
+                              width: imageSize,
+                              height: imageSize,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    cat['gradient'][0],
+                                    cat['gradient'][1],
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: cat['color'].withOpacity(0.5),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
                               ),
-                              child: ClipOval(
-                                child: Image.asset(
-                                  cat['image'],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    cat['icon'],
-                                    size: imageSize * 0.45,
-                                    color: cat['color'],
+                              child: Container(
+                                margin: const EdgeInsets.all(3),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    cat['image'],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      cat['icon'],
+                                      size: imageSize * 0.45,
+                                      color: cat['color'],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          
-                          SizedBox(height: isLandscape ? 6 : 10),
-                          
-                          // Category name dengan constraint
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: isLandscape ? 2 : 4),
-                            child: Text(
-                              cat['name'],
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.3,
-                                height: 1.2,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.4),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 6,
+                            
+                            SizedBox(height: isLandscape ? 6 : 8),
+                            
+                            // Category name - CENTERED dengan batasan lebar
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 120, // Batasi lebar maksimal
+                              ),
+                              child: Text(
+                                cat['name'],
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: fontSize,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.3,
+                                  height: 1.2,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.4),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            
+                            SizedBox(height: isLandscape ? 5 : 7),
+                            
+                            // Play button - CENTERED
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isTablet ? 14 : (isLandscape ? 10 : 12),
+                                vertical: isTablet ? 7 : (isLandscape ? 5 : 6),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.4),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.play_arrow_rounded,
+                                    color: Colors.white,
+                                    size: isTablet ? 16 : (isLandscape ? 12 : 14),
+                                  ),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'Mulai',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isTablet ? 12 : (isLandscape ? 9 : 10),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          
-                          SizedBox(height: isLandscape ? 5 : 8),
-                          
-                          // Play button
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isTablet ? 16 : (isLandscape ? 10 : 12),
-                              vertical: isTablet ? 8 : (isLandscape ? 5 : 6),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.4),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.play_arrow_rounded,
-                                  color: Colors.white,
-                                  size: isTablet ? 18 : (isLandscape ? 14 : 15),
-                                ),
-                                SizedBox(width: isTablet ? 5 : 3),
-                                Text(
-                                  'Mulai',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: isTablet ? 13 : (isLandscape ? 10 : 11),
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -512,17 +525,15 @@ class CategorySelectionScreen extends StatelessWidget {
   }
 
   Widget _buildFooter(bool isTablet, bool isLandscape) {
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
-    final fontSize = isTablet ? 15.0 : (isLandscape ? 12.0 : 14.0);
+    final fontSize = isTablet ? 14.0 : (isLandscape ? 11.0 : 13.0);
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
       padding: EdgeInsets.symmetric(
-        vertical: isTablet ? 18 : (isLandscape ? 12 : 16),
-        horizontal: isTablet ? 28 : 20,
+        vertical: isTablet ? 16 : (isLandscape ? 10 : 14),
+        horizontal: isTablet ? 24 : 18,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+        borderRadius: BorderRadius.circular(isTablet ? 22 : 18),
         gradient: LinearGradient(
           colors: [
             Colors.white.withOpacity(0.12),
@@ -542,7 +553,7 @@ class CategorySelectionScreen extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+        borderRadius: BorderRadius.circular(isTablet ? 22 : 18),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Row(
@@ -552,9 +563,9 @@ class CategorySelectionScreen extends StatelessWidget {
               Icon(
                 Icons.touch_app_rounded,
                 color: Colors.white.withOpacity(0.6),
-                size: isTablet ? 20 : (isLandscape ? 16 : 18),
+                size: isTablet ? 18 : (isLandscape ? 14 : 16),
               ),
-              SizedBox(width: isTablet ? 10 : 8),
+              SizedBox(width: isTablet ? 8 : 6),
               Flexible(
                 child: Text(
                   'Ketuk kategori untuk memulai',
