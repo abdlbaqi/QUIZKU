@@ -113,6 +113,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                     // Footer
                     _buildFooter(isTablet, isLandscape),
                     
+                    // ignore: prefer_const_constructors
                     SizedBox(height: 24),
                   ],
                 ),
