@@ -1,6 +1,7 @@
 // lib/screens/admin/manage_questions.dart
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -34,9 +35,9 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
   String? _editingDocId;
 
   // Image states
-  File? _selectedImage;           // mobile
-  Uint8List? _webImageBytes;      // web
-  String? _currentImageUrl;       // URL dari Firestore
+  File? _selectedImage;
+  Uint8List? _webImageBytes;
+  String? _currentImageUrl;
   bool _removeExistingImage = false;
 
   bool _isSaving = false;
@@ -59,7 +60,6 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     super.dispose();
   }
 
-  // Pilih gambar
   Future<void> _pickImage() async {
     try {
       final XFile? picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
@@ -90,7 +90,6 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     }
   }
 
-  // Hapus gambar dari UI
   void _removeImage() {
     setState(() {
       _selectedImage = null;
@@ -100,15 +99,12 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     });
   }
 
-  // Upload ke Cloudinary (jika ada gambar baru)
   Future<String?> _uploadImageIfAny() async {
     try {
-      // Hapus gambar & tidak ada gambar baru → return null
       if (_removeExistingImage && _selectedImage == null && _webImageBytes == null) {
         return null;
       }
 
-      // Tidak ada gambar baru → pakai URL lama
       if (_selectedImage == null && _webImageBytes == null) {
         return _currentImageUrl;
       }
@@ -125,7 +121,7 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
             const SnackBar(content: Text('Gagal upload ke Cloudinary'), backgroundColor: Colors.red),
           );
         }
-        return _currentImageUrl; // fallback
+        return _currentImageUrl;
       }
       return uploadedUrl;
     } catch (e) {
@@ -138,7 +134,6 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     }
   }
 
-  // Simpan / Update soal
   Future<void> _saveQuestion() async {
     if (!_formKey.currentState!.validate() || _isSaving) return;
 
@@ -205,7 +200,8 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white.withOpacity(0.95),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Hapus Soal?', style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('Soal ini akan dihapus permanen.'),
         actions: [
@@ -249,285 +245,594 @@ class _ManageQuestionsScreenState extends State<ManageQuestionsScreen> {
     setState(() {});
   }
 
+  // Glass Container Widget
+  Widget _buildGlassContainer({
+    required Widget child,
+    double? width,
+    double? height,
+    EdgeInsets? padding,
+    EdgeInsets? margin,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.15),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 900;
+    
     Widget? imagePreview;
     if (_webImageBytes != null) {
-      imagePreview = Image.memory(_webImageBytes!, fit: BoxFit.contain, height: 250);
+      imagePreview = Image.memory(_webImageBytes!, fit: BoxFit.contain, height: 200);
     } else if (!kIsWeb && _selectedImage != null) {
-      imagePreview = Image.file(_selectedImage!, fit: BoxFit.contain, height: 250);
+      imagePreview = Image.file(_selectedImage!, fit: BoxFit.contain, height: 200);
     } else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
       imagePreview = Image.network(
         _currentImageUrl!,
         fit: BoxFit.contain,
-        height: 250,
-        loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.purple)),
-        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 80, color: Colors.red),
+        height: 200,
+        loadingBuilder: (context, child, progress) => progress == null 
+            ? child 
+            : const Center(child: CircularProgressIndicator(color: Colors.white)),
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 60, color: Colors.white70),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kelola Soal Kuis'),
-        backgroundColor: Colors.redAccent,
-        foregroundColor: Colors.white,
-        elevation: 10,
-      ),
+      backgroundColor: const Color(0xFF0f0f1e),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(colors: [Color(0xFF1a1a2e), Color(0xFF16213e)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF6366f1),
+              const Color(0xFF8b5cf6),
+              const Color(0xFFec4899),
+            ].map((c) => c.withOpacity(0.3)).toList(),
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
+        child: SafeArea(
+          child: Column(
             children: [
-              // ==================== FORM ====================
-              Expanded(
-                flex: 2,
-                child: Card(
-                  elevation: 15,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                  child: Container(
-                    padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(25), color: Colors.white),
-                    child: Form(
-                      key: _formKey,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_isEditing ? 'Edit Soal' : 'Tambah Soal Baru',
-                                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple)),
-                            const Divider(thickness: 2, color: Colors.purple),
-                            const SizedBox(height: 20),
-
-                            // Kategori
-                            DropdownButtonFormField<String>(
-                              value: _selectedCategory,
-                              decoration: InputDecoration(
-                                labelText: 'Kategori',
-                                prefixIcon: const Icon(Icons.category, color: Colors.purple),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                                filled: true,
-                                fillColor: Colors.purple[50],
-                              ),
-                              items: categoryOptions
-                                  .map((e) => DropdownMenuItem(value: e['value'], child: Text(e['label']!)))
-                                  .toList(),
-                              onChanged: (v) => setState(() => _selectedCategory = v!),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Upload Gambar
-                            const Text('Gambar Soal (Opsional)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: _pickImage,
-                                  icon: const Icon(Icons.photo_library),
-                                  label: const Text('Pilih Gambar'),
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                                ),
-                                const SizedBox(width: 10),
-                                if (_selectedImage != null || _webImageBytes != null || _currentImageUrl != null)
-                                  ElevatedButton.icon(
-                                    onPressed: _removeImage,
-                                    icon: const Icon(Icons.delete),
-                                    label: const Text('Hapus'),
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Preview Gambar
-                            if (imagePreview != null)
-                              Container(
-                                width: double.infinity,
-                                constraints: const BoxConstraints(maxHeight: 300),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.purple, width: 3),
-                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
-                                ),
-                                child: ClipRRect(borderRadius: BorderRadius.circular(18), child: imagePreview),
-                              ),
-                            if (imagePreview != null) const SizedBox(height: 25),
-
-                            // Pertanyaan
-                            TextFormField(
-                              controller: _questionCtrl,
-                              decoration: InputDecoration(
-                                labelText: 'Pertanyaan',
-                                prefixIcon: const Icon(Icons.question_answer),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                                filled: true,
-                                fillColor: Colors.grey[100],
-                              ),
-                              maxLines: 5,
-                              validator: (v) => v!.trim().isEmpty ? 'Wajib diisi' : null,
-                            ),
-                            const SizedBox(height: 15),
-
-                            // Pilihan A-D
-                            ...['A', 'B', 'C', 'D'].asMap().entries.map((e) {
-                              final ctrl = [_aCtrl, _bCtrl, _cCtrl, _dCtrl][e.key];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: TextFormField(
-                                  controller: ctrl,
-                                  decoration: InputDecoration(
-                                    labelText: 'Pilihan ${e.value}',
-                                    prefixIcon: CircleAvatar(
-                                        backgroundColor: Colors.purple,
-                                        child: Text(e.value, style: const TextStyle(color: Colors.white))),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                                    filled: true,
-                                    fillColor: Colors.purple[50],
-                                  ),
-                                  validator: (v) => v!.trim().isEmpty ? 'Wajib diisi' : null,
-                                ),
-                              );
-                            }),
-
-                            const SizedBox(height: 20),
-                            const Text('Jawaban Benar:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            Row(
-                              children: ['a', 'b', 'c', 'd'].map((opt) {
-                                return Row(
-                                  children: [
-                                    Radio<String>(
-                                      value: opt,
-                                      groupValue: _correctAnswer,
-                                      onChanged: (v) => setState(() => _correctAnswer = v!),
-                                      activeColor: Colors.green,
-                                    ),
-                                    Text(opt.toUpperCase(), style: const TextStyle(fontSize: 16)),
-                                    const SizedBox(width: 20),
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 30),
-
-                            // TOMBOL SIMPAN – SUDAH DIPERBAIKI 100%
-                            SizedBox(
-                              width: double.infinity,
-                              height: 65,
-                              child: ElevatedButton(
-                                onPressed: _isSaving ? null : _saveQuestion,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isEditing ? Colors.orange : Colors.green,
-                                  foregroundColor: Colors.white,
-                                  elevation: 20,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
-                                ),
-                                child: _isSaving
-                                    ? const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                          ),
-                                          SizedBox(width: 12),
-                                          Text('Menyimpan...', style: TextStyle(fontSize: 18)),
-                                        ],
-                                      )
-                                    : Text(
-                                        _isEditing ? 'UPDATE SOAL' : 'SIMPAN SOAL',
-                                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
+              // Header dengan Glass Effect
+              _buildGlassContainer(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.quiz, color: Colors.white, size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Kelola Soal Kuis',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
 
-              const SizedBox(width: 20),
-
-              // ==================== LIST SOAL ====================
+              // Content Area
               Expanded(
-                flex: 1,
-                child: Card(
-                  elevation: 15,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(
-                            color: Colors.redAccent, borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
-                        child: const Center(
-                            child: Text('Daftar Soal',
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white))),
-                      ),
-                      Expanded(
-                        child: StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('questions')
-                              .orderBy('updatedAt', descending: true)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Center(child: CircularProgressIndicator(color: Colors.purple));
-                            }
-                            final docs = snapshot.data!.docs;
-                            if (docs.isEmpty) {
-                              return const Center(child: Text('Belum ada soal', style: TextStyle(fontSize: 18)));
-                            }
-
-                            return ListView.builder(
-                              itemCount: docs.length,
-                              itemBuilder: (ctx, i) {
-                                final data = docs[i].data() as Map<String, dynamic>;
-                                final docId = docs[i].id;
-                                final img = data['image_url'] as String?;
-
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  elevation: 5,
-                                  child: ListTile(
-                                    leading: img != null && img.isNotEmpty
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: Image.network(img, width: 60, height: 60, fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.red)),
-                                          )
-                                        : const Icon(Icons.quiz, color: Colors.purple, size: 40),
-                                    title: Text(data['question'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text(
-                                        'Kategori: ${(data['category'] ?? 'umum').toString().toUpperCase()} | Jawaban: ${(data['correct_answer'] ?? '').toString().toUpperCase()}'),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _editQuestion(docs[i])),
-                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteQuestion(docId)),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: isDesktop ? _buildDesktopLayout(imagePreview) : _buildMobileLayout(imagePreview),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDesktopLayout(Widget? imagePreview) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Form Section
+        Expanded(
+          flex: 3,
+          child: _buildFormSection(imagePreview),
+        ),
+        const SizedBox(width: 16),
+        // List Section
+        Expanded(
+          flex: 2,
+          child: _buildListSection(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(Widget? imagePreview) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildFormSection(imagePreview),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 500,
+            child: _buildListSection(),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormSection(Widget? imagePreview) {
+    return _buildGlassContainer(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _isEditing ? 'Edit Soal' : 'Tambah Soal',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Kategori
+              _buildGlassField(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  dropdownColor: const Color(0xFF1a1a2e),
+                  decoration: const InputDecoration(
+                    labelText: 'Kategori',
+                    labelStyle: TextStyle(color: Colors.white70),
+                    prefixIcon: Icon(Icons.category, color: Colors.white70),
+                    border: InputBorder.none,
+                  ),
+                  style: const TextStyle(color: Colors.white),
+                  items: categoryOptions
+                      .map((e) => DropdownMenuItem(
+                            value: e['value'],
+                            child: Text(e['label']!, style: const TextStyle(color: Colors.white)),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedCategory = v!),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Image Upload
+              const Text('Gambar Soal (Opsional)', 
+                  style: TextStyle(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildGlassButton(
+                      onPressed: _pickImage,
+                      icon: Icons.add_photo_alternate,
+                      label: 'Pilih Gambar',
+                      color: const Color(0xFF3b82f6),
+                    ),
+                  ),
+                  if (_selectedImage != null || _webImageBytes != null || _currentImageUrl != null) ...[
+                    const SizedBox(width: 12),
+                    _buildGlassButton(
+                      onPressed: _removeImage,
+                      icon: Icons.delete_outline,
+                      label: '',
+                      color: const Color(0xFFef4444),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Image Preview
+              if (imagePreview != null)
+                _buildGlassContainer(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: imagePreview,
+                  ),
+                ),
+
+              // Pertanyaan
+              _buildGlassField(
+                child: TextFormField(
+                  controller: _questionCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Pertanyaan',
+                    labelStyle: TextStyle(color: Colors.white70),
+                    prefixIcon: Icon(Icons.question_answer, color: Colors.white70),
+                    border: InputBorder.none,
+                  ),
+                  validator: (v) => v!.trim().isEmpty ? 'Wajib diisi' : null,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Options A-D
+              ...['A', 'B', 'C', 'D'].asMap().entries.map((e) {
+                final ctrl = [_aCtrl, _bCtrl, _cCtrl, _dCtrl][e.key];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildGlassField(
+                    child: TextFormField(
+                      controller: ctrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Pilihan ${e.value}',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(8),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              e.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      validator: (v) => v!.trim().isEmpty ? 'Wajib diisi' : null,
+                    ),
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 20),
+              const Text('Jawaban Benar', 
+                  style: TextStyle(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              
+              // Radio Buttons
+              _buildGlassContainer(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: ['a', 'b', 'c', 'd'].map((opt) {
+                    final isSelected = _correctAnswer == opt;
+                    return GestureDetector(
+                      onTap: () => setState(() => _correctAnswer = opt),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected 
+                              ? Colors.white.withOpacity(0.3)
+                              : Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected 
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(
+                          opt.toUpperCase(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: _buildGlassButton(
+                  onPressed: _isSaving ? null : _saveQuestion,
+                  icon: _isEditing ? Icons.update : Icons.save,
+                  label: _isSaving 
+                      ? 'Menyimpan...' 
+                      : (_isEditing ? 'Update Soal' : 'Simpan Soal'),
+                  color: _isEditing 
+                      ? const Color(0xFFf59e0b)
+                      : const Color(0xFF10b981),
+                  isLoading: _isSaving,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListSection() {
+    return _buildGlassContainer(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.list_alt, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Daftar Soal',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // List
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('questions')
+                  .orderBy('updatedAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+                final docs = snapshot.data!.docs;
+                if (docs.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Belum ada soal',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: docs.length,
+                  itemBuilder: (ctx, i) {
+                    final data = docs[i].data() as Map<String, dynamic>;
+                    final docId = docs[i].id;
+                    final img = data['image_url'] as String?;
+
+                    return _buildGlassContainer(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Image or Icon
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white.withOpacity(0.1),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: img != null && img.isNotEmpty
+                                  ? Image.network(
+                                      img,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => 
+                                          const Icon(Icons.broken_image, color: Colors.white70),
+                                    )
+                                  : const Icon(Icons.quiz, color: Colors.white70, size: 30),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          
+                          // Content
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  data['question'] ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        (data['category'] ?? 'umum').toString().toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '✓ ${(data['correct_answer'] ?? '').toString().toUpperCase()}',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.7),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Actions
+                          Column(
+                            children: [
+                              IconButton(
+                                onPressed: () => _editQuestion(docs[i]),
+                                icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              IconButton(
+                                onPressed: () => _deleteQuestion(docId),
+                                icon: const Icon(Icons.delete_outline, color: Colors.white70, size: 20),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassField({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassButton({
+    required VoidCallback? onPressed,
+    required IconData icon,
+    required String label,
+    required Color color,
+    bool isLoading = false,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.3),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        side: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
+      ),
+      icon: isLoading 
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            )
+          : Icon(icon, size: 20),
+      label: label.isNotEmpty ? Text(label, style: const TextStyle(fontWeight: FontWeight.w600)) : const SizedBox(),
     );
   }
 }
