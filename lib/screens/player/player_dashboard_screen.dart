@@ -16,7 +16,6 @@ class PlayerDashboardScreen extends StatefulWidget {
 
 class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
   late Map<String, dynamic> _currentUserData;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -524,6 +523,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
   }
 
   Widget _buildFooter(bool isTablet, bool isLandscape) {
+    // ignore: unused_local_variable
     final fontSize = isTablet ? 15.0 : (isLandscape ? 12.0 : 14.0);
 
     return Column(
