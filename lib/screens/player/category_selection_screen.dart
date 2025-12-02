@@ -9,7 +9,7 @@ class CategorySelectionScreen extends StatelessWidget {
   final List<Map<String, dynamic>> categories = const [
     {
       'name': 'Matematika',
-      'image': 'assets/hewann.png',
+      'image': 'assets/matematika.png',
       'icon': Icons.calculate_rounded,
       'color': Color(0xFFFF6B6B),
       'gradient': [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
@@ -25,7 +25,7 @@ class CategorySelectionScreen extends StatelessWidget {
     },
     {
       'name': 'Olahraga',
-      'image': 'assets/hewann.png',
+      'image': 'assets/olahraga.png',
       'icon': Icons.sports_soccer_rounded,
       'color': Color(0xFFF38181),
       'gradient': [Color(0xFFF38181), Color(0xFFFCE38A)],
@@ -33,7 +33,7 @@ class CategorySelectionScreen extends StatelessWidget {
     },
     {
       'name': 'Pengetahuan Umum',
-      'image': 'assets/hewann.png',
+      'image': 'assets/umum.png',
       'icon': Icons.school_rounded,
       'color': Color(0xFF95E1D3),
       'gradient': [Color(0xFF95E1D3), Color(0xFFAAF683)],

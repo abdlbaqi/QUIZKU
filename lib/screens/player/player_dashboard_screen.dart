@@ -207,7 +207,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                   child: CircleAvatar(
                     radius: avatarRadius,
                     backgroundColor: Colors.white,
-                    backgroundImage: const AssetImage('assets/hewann.png'),
+                    backgroundImage: const AssetImage('assets/frame.png'),
                     onBackgroundImageError: (_, __) {},
                     child: _currentUserData['photoURL'] == null
                         ? Icon(
@@ -344,7 +344,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                     ),
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/hewann.png',
+                        'assets/frame.png',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(
