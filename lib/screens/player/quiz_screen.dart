@@ -260,7 +260,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(25),
                             child: Image.network(
-                              imageUrl!,
+                              imageUrl,
                               fit: BoxFit.contain,
                               width: double.infinity,
                               loadingBuilder: (c, child, prog) => prog == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
