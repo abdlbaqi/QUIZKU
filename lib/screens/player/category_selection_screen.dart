@@ -11,32 +11,32 @@ class CategorySelectionScreen extends StatelessWidget {
       'name': 'Matematika',
       'image': 'assets/matematika.png',
       'icon': Icons.calculate_rounded,
-      'color': Color(0xFFFF6B6B),
-      'gradient': [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+      'color': Color(0xFF5C6BC0),
+      'gradient': [Color(0xFF5C6BC0), Color(0xFF7E57C2)],
       'categoryId': 'matematika',
     },
     {
       'name': 'Hewan',
       'image': 'assets/hewann.png',
       'icon': Icons.pets_rounded,
-      'color': Color(0xFF4ECDC4),
-      'gradient': [Color(0xFF4ECDC4), Color(0xFF44A08D)],
+      'color': Color(0xFF26A69A),
+      'gradient': [Color(0xFF26A69A), Color(0xFF00897B)],
       'categoryId': 'hewan',
     },
     {
       'name': 'Olahraga',
       'image': 'assets/olahraga.png',
       'icon': Icons.sports_soccer_rounded,
-      'color': Color(0xFFF38181),
-      'gradient': [Color(0xFFF38181), Color(0xFFFCE38A)],
+      'color': Color(0xFF42A5F5),
+      'gradient': [Color(0xFF42A5F5), Color(0xFF1E88E5)],
       'categoryId': 'olahraga',
     },
     {
       'name': 'Pengetahuan Umum',
       'image': 'assets/umum.png',
       'icon': Icons.school_rounded,
-      'color': Color(0xFF95E1D3),
-      'gradient': [Color(0xFF95E1D3), Color(0xFFAAF683)],
+      'color': Color(0xFF66BB6A),
+      'gradient': [Color(0xFF66BB6A), Color(0xFF43A047)],
       'categoryId': 'umum',
     },
   ];
@@ -100,9 +100,9 @@ class CategorySelectionScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0F0C29),
-              Color(0xFF302B63),
-              Color(0xFF24243E),
+              Color(0xFF1A1A2E),
+              Color(0xFF16213E),
+              Color(0xFF0F3460),
             ],
           ),
         ),
@@ -219,14 +219,14 @@ class CategorySelectionScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFFAB47BC),
-                      Color(0xFFEC407A),
+                      Color(0xFF00D4FF),
+                      Color(0xFF0091EA),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(2),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFAB47BC).withOpacity(0.5),
+                      color: const Color(0xFF00D4FF).withOpacity(0.5),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -261,7 +261,6 @@ class CategorySelectionScreen extends StatelessWidget {
         : (isTablet ? 3 : 2);
     
     final spacing = isTablet ? 20.0 : 16.0;
-    // Aspect ratio yang lebih besar untuk menghindari overflow
     final childAspectRatio = isLandscape 
         ? 1.15
         : (isTablet ? 1.05 : 1.0);
@@ -441,7 +440,7 @@ class CategorySelectionScreen extends StatelessWidget {
                             // Category name - CENTERED dengan batasan lebar
                             ConstrainedBox(
                               constraints: const BoxConstraints(
-                                maxWidth: 120, // Batasi lebar maksimal
+                                maxWidth: 120,
                               ),
                               child: Text(
                                 cat['name'],

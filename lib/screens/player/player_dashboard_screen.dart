@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firebase_service.dart';
 import 'category_selection_screen.dart';
 import 'leaderboard_screen.dart';
+import 'profile_screen.dart'; // ← FILE BARU UNTUK EDIT PROFIL
 
 class PlayerDashboardScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -54,7 +55,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
+            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
           ),
         ),
         child: SafeArea(
@@ -104,13 +105,12 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFFFFC107), Color(0xFFFF8F00)]),
+                            gradient: const LinearGradient(colors: [Color(0xFF00D4FF), Color(0xFF0091EA)]),
                             borderRadius: BorderRadius.circular(30),
-                            boxShadow: [BoxShadow(color: Colors.amber.withOpacity(0.5), blurRadius: 25, offset: const Offset(0, 12))],
+                            boxShadow: [BoxShadow(color: const Color(0xFF00D4FF).withOpacity(0.4), blurRadius: 25, offset: const Offset(0, 12))],
                           ),
                           child: Column(
                             children: [
-                              // GANTI Icons.trophy → Icons.emoji_events (yang benar!)
                               const Icon(Icons.emoji_events, size: 70, color: Colors.white),
                               const SizedBox(height: 16),
                               const Text('Skor Tertinggi', style: TextStyle(color: Colors.white, fontSize: 20)),
@@ -131,7 +131,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                               child: _buildActionButton(
                                 title: 'MULAI KUIS',
                                 icon: Icons.play_circle,
-                                gradient: const [Color(0xFFE91E63), Color(0xFF9C27B0)],
+                                gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategorySelectionScreen())).then((_) => _refresh()),
                               ),
                             ),
@@ -140,7 +140,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
                               child: _buildActionButton(
                                 title: 'LEADERBOARD',
                                 icon: Icons.leaderboard_rounded,
-                                gradient: const [Color(0xFF4CAF50), Color(0xFF8BC34A)],
+                                gradient: const [Color(0xFF11998E), Color(0xFF38EF7D)],
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
                               ),
                             ),
@@ -158,29 +158,35 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
         ),
       ),
 
-      // === PROFILE + LOGOUT DI POJOK KANAN ATAS ===
+      // === AVATAR + LOGOUT DI POJOK KANAN ATAS ===
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(top: 16, right: 16),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Logout
             IconButton(
               onPressed: _logout,
               icon: const Icon(Icons.logout_rounded, color: Colors.white70, size: 26),
               tooltip: 'Logout',
             ),
             const SizedBox(width: 8),
+            // Profil — Klik buka halaman edit profil
             GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profil kamu'), backgroundColor: Colors.purple),
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
                 );
+                if (result == true) {
+                  _refresh(); // Refresh kalau ada perubahan
+                }
               },
               child: CircleAvatar(
                 radius: 22,
                 backgroundImage: _userData['photoURL'] != null ? NetworkImage(_userData['photoURL']) : null,
-                backgroundColor: Colors.white24,
+                backgroundColor: Colors.white.withOpacity(0.2),
                 child: _userData['photoURL'] == null
                     ? const Icon(Icons.person, color: Colors.white70, size: 26)
                     : null,
@@ -205,7 +211,7 @@ class _PlayerDashboardScreenState extends State<PlayerDashboardScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: gradient),
           borderRadius: BorderRadius.circular(30),
-          boxShadow: [BoxShadow(color: gradient[0].withOpacity(0.6), blurRadius: 20, offset: const Offset(0, 10))],
+          boxShadow: [BoxShadow(color: gradient[0].withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 10))],
         ),
         child: Column(
           children: [
