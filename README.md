@@ -1,5 +1,5 @@
 # QuizKuAPP
-# Uap Project Mobile Lanjut
+# Uas Project Mobile Lanjut
 
  **Anggota Kelompok 4**
 - Fuad Abdul Baqi
